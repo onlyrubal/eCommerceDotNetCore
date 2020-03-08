@@ -10,22 +10,26 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using eCommerceDotNetCore.Models;
 
 namespace eCommerceDotNetCore
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        public IConfiguration Configuration { get; set; }
 
-        public IConfiguration Configuration { get; }
+        public Startup(IConfiguration _configuration) => Configuration = _configuration;
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllers();
+
+            services.AddDbContext<ProductContext>
+            (opt => opt.UseSqlServer(Configuration["Data:eCommerceDotNetCoreConnection:ConnectionString"]));
+
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddMvc(option => option.EnableEndpointRouting = false);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -35,6 +39,8 @@ namespace eCommerceDotNetCore
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseMvc();
 
             app.UseHttpsRedirection();
 
